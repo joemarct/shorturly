@@ -1,2 +1,2 @@
 # ShortURLy
-> Yet another URL shortener service
+> Yet another URL shortening service
