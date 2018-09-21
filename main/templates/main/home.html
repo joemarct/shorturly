@@ -4,6 +4,11 @@
 <head>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        .errors {
+            color: red;
+        }
+    </style>
     <title>ShortURLy</title>
 </head>
 
@@ -19,8 +24,24 @@
             </a>
         </div>
         <div v-else>
-            <p><input v-model="url"></p>
-            <p><input v-model="hash"></p>
+            <p>
+                <input v-model="url" placeholder="Enter URL">
+                <span class="errors" v-if="submitted && url.length === 0">
+                    URL is required!
+                </span>
+                <span class="errors" v-if="submitted && urlIsValid === false">
+                    This URL is not valid!
+                </span>
+            </p>
+            <p>
+                <input v-model="hash" placeholder="Hash (optional, max 15 characters)">
+                <span class="errors" v-if="submitted && hashTooLong">
+                    Hash should not be more than 15 characters!
+                </span>
+                <span class="errors" v-if="submitted && hashIsValid === false">
+                    This hash is not valid!
+                </span>
+            </p>
             <button @click="submit()">Submit</button>
         </div>
     </div>
@@ -33,18 +54,53 @@
             data: {
                 url: '',
                 hash: '',
-                shortUrl: null
+                shortUrl: null,
+                urlIsValid: null,
+                hashTooLong: null,
+                hashIsValid: null,
+                submitted: false
             },
             delimiters: ["<%","%>"],
+            watch: {
+                url: function (newVal, oldVal) {
+                    this.submitted = false
+                    this.urlIsValid = null
+                },
+                hash: function(newVal, oldVal) {
+                    this.submitted = false
+                    this.hashTooLong = null
+                    this.hashIsValid = null
+                    if (newVal && newVal.length >= 15) {
+                        this.hashTooLong = true
+                    }
+                }
+            },
             methods: {
+                validateUrl: function (value) {
+                    return /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value);
+                },
+                validateHash: function (value) {
+                    if (value === '') {
+                        return true
+                    } else {
+                        return !/[^a-zA-Z0-9]/.test(value)
+                    }
+                },
                 submit: function () {
-                    var vm = this
-                    axios.post('/shorten-url/', {
-                        url: this.url,
-                        hash: this.hash
-                    }).then(function (resp) {
-                        vm.shortUrl = resp.data.short_url
-                    })
+                    this.submitted = true
+                    if (this.url) {
+                        this.urlIsValid = this.validateUrl(this.url)
+                        this.hashIsValid = this.validateHash(this.hash)
+                        if (this.urlIsValid && this.hashIsValid) {
+                            var vm = this
+                            axios.post('/shorten-url/', {
+                                url: this.url,
+                                hash: this.hash
+                            }).then(function (resp) {
+                                vm.shortUrl = resp.data.short_url
+                            })
+                        }
+                    }
                 }
             }
         })
