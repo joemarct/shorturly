@@ -4,28 +4,85 @@
 <head>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Catamaran" rel="stylesheet">
     <style>
+        html {
+            font-family: 'Catamaran', sans-serif;
+        }
+        h1 {
+            line-height: 10px;
+            font-weight: 800;
+            font-size: 51px;
+        }
+        #app {
+            padding: 2% 3%;
+        }
+        #header {
+            margin-bottom: 30px;
+        }
+        #header span {
+            font-size: 24px;
+        }
+        #title-url {
+            color: #4CAF50 !important;
+            font-size: 51px !important;
+        }
         .errors {
             color: red;
+            padding-left: 10px;
+            font-size: 20px;
+        }
+        input {
+            font-size: 16px;
+            height: 30px;
+            padding: 5px 10px;
+        }
+        #url {
+            width: 500px;
+        }
+        #hash {
+            width: 300px;
+        }
+        button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 15px 25px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 18px;
+        }
+        #short-url {
+            font-size: 28px;
+            text-decoration: none;
+            color: #4CAF50;
+        }
+        #back-container {
+            margin-top: 20px;
         }
     </style>
     <title>ShortURLy</title>
 </head>
 
 <body>
-
     <div id="app">
-        <h3>ShortURLy</h3>
-        <p>URL Shortening Service</p>
+        <div id="header">
+            <h1>Short<span id="title-url">URL</span>y</h1>
+            <span>URL Shortening Service</span>
+        </div>
         <div v-if="shortUrl">
-            Generated short URL:<br>
-            <a :href="shortUrl" target="_blank">
+            <strong>Generated short URL:</strong><br>
+            <a :href="shortUrl" target="_blank" id="short-url">
                 <% shortUrl %>
             </a>
+            <div id="back-container">
+                <button @click="back()">Back</button>
+            </div>
         </div>
         <div v-else>
             <p>
-                <input v-model="url" placeholder="Enter URL">
+                <input id="url" v-model="url" placeholder="Enter URL">
                 <span class="errors" v-if="submitted && url.length === 0">
                     URL is required!
                 </span>
@@ -34,7 +91,7 @@
                 </span>
             </p>
             <p>
-                <input v-model="hash" placeholder="Hash (optional, max 15 characters)">
+                <input id="hash" v-model="hash" placeholder="Hash (optional, max 15 characters)">
                 <span class="errors" v-if="submitted && hashTooLong">
                     Hash should not be more than 15 characters!
                 </span>
@@ -101,6 +158,15 @@
                             })
                         }
                     }
+                },
+                back: function () {
+                    this.url = ''
+                    this.hash = ''
+                    this.shortUrl = null
+                    this.urlIsValid = null
+                    this.hashTooLong = null
+                    this.hashIsValid = null
+                    this.submitted = false
                 }
             }
         })
